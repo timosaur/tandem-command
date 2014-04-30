@@ -1,0 +1,35 @@
+.tandem {
+	padding: 0 5px;
+	background: lightgray;
+	display: inline-block;
+
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.tandem-spot {
+	width: 100px;
+	height: 150px;
+	padding: 10px 5px 10px 5px;
+	border-top: 1px dashed gray;
+}
+.tandem-spot:first-child {
+	border-top: none;
+}
+.car {
+	box-sizing: border-box;
+	border-width: 5px;
+	position: relative;
+	height: 100%;
+	border-radius: 10px;
+}
+.parked {
+	border-style: solid !important;
+}
+.requested {
+	background-color: gray;
+	box-shadow: 0px 0px 5px 5px gray;
+}
