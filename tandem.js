@@ -28,11 +28,13 @@
     self.spot = ko.observable();
 
     self.park = function() {
-      if (self.spot().parked() == self) {
-        self.spot().parked(null);
-      } else {
+      if (!self.spot()) return;
+      if (self.spot().parked() != self) {
         self.spot().requests.remove(self);
         self.spot().parked(self);
+      } else {
+        self.spot().parked(null);
+        self.spot(null);
       }
     }
   }
