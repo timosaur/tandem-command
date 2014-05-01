@@ -20,7 +20,7 @@
     </div>
     <div class="garage" data-bind="foreach: cars">
       <div class="garage-spot">
-        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data }"></div>
+        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: !spot() && parked() }"></div>
       </div>
     </div>
     <button data-bind="click: function() { car().park() }">Park</button>

@@ -13,6 +13,7 @@
         car.spot(self);
         self.requests.push(car);
       } else {
+        car.spot(null);
         self.requests.remove(car);
       }
     }
@@ -26,13 +27,20 @@
     var self = this;
     self.driver = ko.observable(driver || null);
     self.spot = ko.observable();
+    self.parked = ko.observable(false);
 
     self.park = function() {
-      if (!self.spot()) return;
-      if (self.spot().parked() != self) {
+      if (!self.spot()) {
+        // Toggle street parking
+        self.parked(!self.parked());
+        return;
+      }
+      if (!self.parked()) {
+        self.parked(true);
         self.spot().requests.remove(self);
         self.spot().parked(self);
       } else {
+        self.parked(false);
         self.spot().parked(null);
         self.spot(null);
       }
