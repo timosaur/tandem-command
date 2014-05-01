@@ -7,8 +7,10 @@
   </head>
   <body>
     <div class="tandem" data-bind="foreach: spots">
-      <div class="spot" data-bind="with: car, click: function() { park($parent.car()) }">
-        <div class="car" data-bind="text: driver"></div>
+      <div class="spot" data-bind="click: function() { request($root.car()) }">
+        <!-- ko foreach: requests -->
+        <div class="car" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
+        <!-- /ko -->
       </div>
     </div>
     <div class="garage" data-bind="foreach: cars">
