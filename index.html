@@ -3,8 +3,27 @@
   <head>
     <meta charset="utf-8">
     <title>Tandem Command</title>
+    <link rel="stylesheet" type="text/css" href="tandem.css">
   </head>
   <body>
+    <div class="tandem" data-bind="foreach: spots">
+      <div class="spot" data-bind="click: function() { request($root.car()) }">
+        <!-- ko foreach: requests -->
+        <div class="car" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
+        <!-- /ko -->
+        <!-- ko with: parked -->
+        <div class="car parked" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
+        <!-- /ko -->
+      </div>
+    </div>
+    <div class="garage" data-bind="foreach: cars">
+      <div class="garage-spot">
+        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: streetParked }"></div>
+      </div>
+    </div>
+    <button data-bind="click: function() { car().park() }">Park</button>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
     <script src="tandem.js"></script>
   </body>
 </html>
