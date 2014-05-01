@@ -10,6 +10,11 @@
 	-ms-user-select: none;
 	user-select: none;
 }
+.garage-spot {
+	display: inline-block;
+	width: 150px;
+	height: 100px;
+}
 .spot {
 	width: 100px;
 	height: 150px;
@@ -26,10 +31,9 @@
 	border-radius: 10px;
 	background: lightblue;
 }
-.parked {
+.requested {
 	border-style: solid !important;
 }
-.requested {
-	background-color: gray;
+.parked {
 	box-shadow: 0px 0px 5px 5px gray;
 }

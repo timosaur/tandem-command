@@ -8,16 +8,22 @@
   <body>
     <div class="tandem" data-bind="foreach: spots">
       <div class="spot" data-bind="click: function() { request($root.car()) }">
+        <!-- ko ifnot: parked -->
         <!-- ko foreach: requests -->
         <div class="car" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
+        <!-- /ko -->
+        <!-- /ko -->
+        <!-- ko with: parked -->
+        <div class="car parked" data-bind="text: driver"></div>
         <!-- /ko -->
       </div>
     </div>
     <div class="garage" data-bind="foreach: cars">
-      <div class="spot">
-        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { parked: $parent.car() === $data }"></div>
+      <div class="garage-spot">
+        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data }"></div>
       </div>
     </div>
+    <button data-bind="click: function() { car().park() }">Park</button>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
     <script src="tandem.js"></script>
