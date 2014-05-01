@@ -8,19 +8,17 @@
   <body>
     <div class="tandem" data-bind="foreach: spots">
       <div class="spot" data-bind="click: function() { request($root.car()) }">
-        <!-- ko ifnot: parked -->
         <!-- ko foreach: requests -->
         <div class="car" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
         <!-- /ko -->
-        <!-- /ko -->
         <!-- ko with: parked -->
-        <div class="car parked" data-bind="text: driver"></div>
+        <div class="car parked" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
         <!-- /ko -->
       </div>
     </div>
     <div class="garage" data-bind="foreach: cars">
       <div class="garage-spot">
-        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: !spot() && parked() }"></div>
+        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: streetParked }"></div>
       </div>
     </div>
     <button data-bind="click: function() { car().park() }">Park</button>
