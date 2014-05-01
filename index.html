@@ -6,15 +6,18 @@
     <link rel="stylesheet" type="text/css" href="tandem.css">
   </head>
   <body>
-    <div class="tandem">
-      <div class="tandem-spot">
-        <div class="car"></div>
+    <div class="tandem" data-bind="foreach: spots">
+      <div class="spot" data-bind="with: car, click: function() { park($parent.car()) }">
+        <div class="car" data-bind="text: driver"></div>
       </div>
-      <div class="tandem-spot">
-        <div class="car"></div>
+    </div>
+    <div class="garage" data-bind="foreach: cars">
+      <div class="spot">
+        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { parked: $parent.car() === $data }"></div>
       </div>
     </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
     <script src="tandem.js"></script>
   </body>
 </html>
