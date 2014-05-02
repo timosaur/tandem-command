@@ -30,24 +30,23 @@
     self.driver = ko.observable(driver || null);
     self.request = ko.observable();
     self.parked = ko.observable();
-    self.streetParked = ko.observable(false);
 
     self.park = function() {
       if (self.request() && !self.request().parked()) {
-        self.streetParked(false);
-        if (self.parked()) {
+        if (self.parked() && self.parked() != "street") {
           self.parked().parked(null);
         }
         self.request().requests.remove(self);
         self.request().parked(self);
         self.parked(self.request());
         self.request(null);
+      } else if (self.parked() == "street") {
+        self.parked(null);
       } else if (self.parked()) {
-        self.streetParked(false);
         self.parked().parked(null);
         self.parked(null);
       } else {
-        self.streetParked(!self.streetParked());
+        self.parked("street");
       }
     }
   }
