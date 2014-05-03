@@ -31,6 +31,8 @@
     self.request = ko.observable();
     self.parked = ko.observable();
 
+    self.time = ko.observable();
+
     self.park = function() {
       if (self.request() && !self.request().parked()) {
         if (self.parked() && self.parked() != "street") {
@@ -60,6 +62,12 @@
       new TandemSpot()
     ]);
     self.car = ko.observable();
+
+    self.time = ko.observable();
+    self.schedule = function() {
+      self.car().time(parseInt(self.time()));
+      self.time(null);
+    }
 
     self.selectCar = function(car) {
       if (car == self.car())
