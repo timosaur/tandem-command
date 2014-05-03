@@ -21,6 +21,7 @@
         <div class="car" data-bind="click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: parked() == 'street' }">
           <span data-bind="text: driver"></span>
           <span data-bind="text: time"></span>
+          <span data-bind="text: suggestion"></span>
         </div>
       </div>
     </div>

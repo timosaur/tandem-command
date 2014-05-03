@@ -1,4 +1,45 @@
 (function() {
+  var suggestions = {
+    '': {
+      0: 's',
+      1: 'i',
+      2: 'i'
+    },
+    '0': {
+      1: 's/i',
+      2: 'i'
+    },
+    '1': {
+      0: 'o',
+      2: 's'
+    },
+    '2': {
+      0: 's/o',
+      1: 's'
+    },
+    '01': {
+      2: 'w'
+    },
+    '02': {
+      1: 'o'
+    },
+    '10': {
+      2: 's'
+    },
+    '12': {
+      0: 'o'
+    },
+    '20': {
+      1: 's'
+    },
+    '20s': {
+      1: 'o'
+    },
+    '21': {
+      0: 'o'
+    }
+
+  }
 
   function TandemSpot(car) {
     var self = this;
@@ -32,6 +73,7 @@
     self.parked = ko.observable();
 
     self.time = ko.observable();
+    self.suggestion = ko.observable();
 
     self.park = function() {
       if (self.request() && !self.request().parked()) {
@@ -57,6 +99,16 @@
     var self = this;
     self.cars = ko.observableArray([
     ]);
+    ko.utils.arrayForEach(self.cars(), function(car) {
+      car.parked.subscribe(function () {
+        if (self.parkedCars.indexOf(car) < 0) {
+          self.parkedCars.push(car);
+        } else {
+          self.parkedCars.remove(car);
+        }
+      });
+    });
+
     self.spots = ko.observableArray([
       new TandemSpot(),
       new TandemSpot()
@@ -68,6 +120,32 @@
       self.car().time(parseInt(self.time()));
       self.time(null);
     }
+
+    self.parkedCars = ko.observableArray([]);
+    self.orderedCars = ko.computed(function() {
+      self.cars.sort(function(l, r) {
+        return l.time() == r.time() ? 0 : (l.time() < r.time() ? -1 : 1)
+      });
+      var parkedorder = [];
+      ko.utils.arrayForEach(self.parkedCars(), function(car) {
+        var i = self.cars.indexOf(car);
+        if (car.parked() == 'street' && (i == 0 && self.cars.length == 2)) {
+          i += 's';
+        }
+        parkedorder.push(i);
+      });
+      var parker = parkedorder.join('');
+      console.log("parker", parker);
+      var oi = 0;
+      for (var i in self.cars()) {
+        var car = self.cars()[i];
+        if (self.parkedCars.indexOf(car) >= 0) {
+          car.suggestion("");
+        } else {
+          car.suggestion(suggestions[parker][i]);
+        }
+      }
+    });
 
     self.selectCar = function(car) {
       if (car == self.car())
