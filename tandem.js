@@ -1,45 +1,4 @@
 (function() {
-  var suggestions = {
-    '': {
-      0: 's',
-      1: 'i',
-      2: 'i'
-    },
-    '0': {
-      1: 's/i',
-      2: 'i'
-    },
-    '1': {
-      0: 'o',
-      2: 's'
-    },
-    '2': {
-      0: 's/o',
-      1: 's'
-    },
-    '01': {
-      2: 'w'
-    },
-    '02': {
-      1: 'o'
-    },
-    '10': {
-      2: 's'
-    },
-    '12': {
-      0: 'o'
-    },
-    '20': {
-      1: 's'
-    },
-    '20s': {
-      1: 'o'
-    },
-    '21': {
-      0: 'o'
-    }
-
-  }
 
   function TandemSpot(car) {
     var self = this;
@@ -99,15 +58,6 @@
     var self = this;
     self.cars = ko.observableArray([
     ]);
-    ko.utils.arrayForEach(self.cars(), function(car) {
-      car.parked.subscribe(function () {
-        if (self.parkedCars.indexOf(car) < 0) {
-          self.parkedCars.push(car);
-        } else {
-          self.parkedCars.remove(car);
-        }
-      });
-    });
 
     self.spots = ko.observableArray([
       new TandemSpot(),
@@ -121,30 +71,53 @@
       self.time(null);
     }
 
-    self.parkedCars = ko.observableArray([]);
-    self.orderedCars = ko.computed(function() {
+    self.suggestSpot = function(cars, numSpots) {
+      var numCars = cars.length;
+      if (numSpots === 0) {
+        ko.utils.arrayForEach(cars, function(car) {
+          car.suggestion("s");
+        });
+      } else if (numSpots === 1) {
+        if (numCars === 1) {
+          cars[0].suggestion("i");
+        } else {
+          ko.utils.arrayForEach(cars, function(car) {
+            car.suggestion("s/i");
+          });
+        }
+      } else {
+        var carsBefore = 0;
+        var carsAfter = numCars - 1;
+        ko.utils.arrayForEach(cars, function(car) {
+          if (carsBefore - carsAfter < 0) {
+            car.suggestion("s");
+          } else {
+            car.suggestion("i");
+          }
+          carsBefore += 1;
+          carsAfter -= 1;
+        });
+      }
+    }
+    ko.computed(function() {
       self.cars.sort(function(l, r) {
         return l.time() == r.time() ? 0 : (l.time() < r.time() ? -1 : 1)
       });
-      var parkedorder = [];
-      ko.utils.arrayForEach(self.parkedCars(), function(car) {
-        var i = self.cars.indexOf(car);
-        if (car.parked() == 'street' && (i == 0 && self.cars.length == 2)) {
-          i += 's';
-        }
-        parkedorder.push(i);
-      });
-      var parker = parkedorder.join('');
-      console.log("parker", parker);
-      var oi = 0;
-      for (var i in self.cars()) {
-        var car = self.cars()[i];
-        if (self.parkedCars.indexOf(car) >= 0) {
-          car.suggestion("");
+      var targetCars = [];
+      var numSpots = self.spots().filter(function(spot) { return !spot.parked(); }).length;
+      ko.utils.arrayForEach(self.cars(), function(car) {
+        if (!car.parked()) {
+          targetCars.push(car);
         } else {
-          car.suggestion(suggestions[parker][i]);
+          car.suggestion("parked");
+          if (car.parked() != "street") {
+            self.suggestSpot(targetCars, numSpots);
+            targetCars = [];
+            numSpots = 0;
+          }
         }
-      }
+      });
+      self.suggestSpot(targetCars, numSpots);
     });
 
     self.selectCar = function(car) {
