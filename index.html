@@ -18,10 +18,18 @@
     </div>
     <div class="garage" data-bind="foreach: cars">
       <div class="garage-spot">
-        <div class="car" data-bind="text: driver, click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: parked() == 'street' }"></div>
+        <div class="car" data-bind="click: function() { $parent.selectCar($data) }, css: { requested: $parent.car() === $data, parked: parked() == 'street' }">
+          <span data-bind="text: driver"></span>
+          <span data-bind="text: time"></span>
+          <span data-bind="text: suggestion"></span>
+        </div>
       </div>
     </div>
     <button data-bind="click: function() { car().park() }">Park</button>
+    <form class="schedule" data-bind="submit: schedule">
+      <input type="text" data-bind="value: time" placeholder="time (2400)">
+      <button type="submit">Schedule</button>
+    </form>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
     <script src="tandem.js"></script>
