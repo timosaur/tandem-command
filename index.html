@@ -7,7 +7,7 @@
   </head>
   <body>
     <div class="tandem" data-bind="foreach: spots">
-      <div class="spot" data-bind="click: function() { request($root.car()) }">
+      <div class="spot">
         <!-- ko foreach: requests -->
         <div class="car" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>
         <!-- /ko -->
@@ -25,7 +25,9 @@
         </div>
       </div>
     </div>
-    <button data-bind="click: function() { car().park() }">Park</button>
+    <button data-bind="click: function() { park() }">park in</button>
+    <button data-bind="click: function() { park(true) }">streetpark</button>
+    <button data-bind="click: function() { unpark() }">unpark</button>
     <button data-bind="click: function() { save() }">save</button>
     <form class="schedule" data-bind="submit: schedule">
       <input type="text" data-bind="value: time" placeholder="time (2400)">
