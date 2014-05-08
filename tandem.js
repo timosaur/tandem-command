@@ -34,7 +34,16 @@
     self.time = ko.observable();
     self.suggestion = ko.observable();
 
-    self.park = function() {
+    self.park = function(spot) {
+      if (!self.parked() && spot) {
+        self.parked(spot);
+        if (spot !== "street") {
+          spot.parked(self);
+        }
+      }
+    }
+
+    self.parkRequested = function() {
       if (self.request() && !self.request().parked()) {
         if (self.parked() && self.parked() != "street") {
           self.parked().parked(null);
@@ -52,6 +61,15 @@
         self.parked("street");
       }
     }
+
+    self.unpark = function() {
+      if (self.parked()) {
+        if (self.parked() !== "street") {
+          self.parked().parked(null);
+        }
+        self.parked(null);
+      }
+    }
   }
 
   function TandemViewModel() {
@@ -59,6 +77,32 @@
     self.cars = ko.observableArray([]);
     self.spots = ko.observableArray([]);
     self.car = ko.observable();
+
+    self.park = function(street) {
+      if (!self.car()) return;
+      var spot = "street";
+      if (!street) {
+        spot = ko.utils.arrayFirst(self.spots(), function(spot) {
+          return !spot.parked();
+        });
+      }
+      self.car().park(spot);
+    }
+
+    self.unpark = function() {
+      if (!self.car() || !self.car().parked()) return;
+      if (self.car().parked() !== "street") {
+        var spotLoc = self.spots.indexOf(self.car().parked());
+        for (var i = spotLoc + 1; i < self.spots().length; i++) {
+          var spot = self.spots()[i];
+          if (spot.parked()) {
+            console.log(self.car().driver(), "blocked");
+            return;
+          }
+        }
+      }
+      self.car().unpark();
+    }
 
     self.time = ko.observable();
     self.schedule = function() {
