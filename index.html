@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/static/tandem.css">
   </head>
   <body>
+    <h1 data-bind="text: name"></h1>
     <div class="tandem" data-bind="foreach: spots">
       <div class="spot" data-bind="with: parked">
         <div class="car parked" data-bind="text: driver, style: { height: $parent.carHeight() }"></div>

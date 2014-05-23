@@ -76,6 +76,8 @@
     var self = this;
     self.id = commandId || 0;
 
+    self.name = ko.observable();
+
     self.cars = ko.observableArray([]);
     self.spots = ko.observableArray([]);
     self.car = ko.observable();
@@ -171,6 +173,7 @@
     self.save = function() {
       console.log("save");
       var saveData = {};
+      saveData['name'] = self.name();
       saveData['spots'] = self.spots().length;
       saveData['cars'] = [];
       ko.utils.arrayForEach(self.cars(), function(car) {
@@ -202,6 +205,7 @@
       method: "get",
       dataType: "json"
     }).success(function(data) {
+      self.name(data['name']);
       var numSpots = data['spots'];
       console.log("saved spots:", numSpots);
       for (; numSpots>0; numSpots--) {
