@@ -172,10 +172,7 @@
 
     self.save = function() {
       console.log("save");
-      var saveData = {};
-      saveData['name'] = self.name();
-      saveData['spots'] = self.spots().length;
-      saveData['cars'] = [];
+      var saveData = [];
       ko.utils.arrayForEach(self.cars(), function(car) {
         var carData = {};
         carData['driver'] = car.driver();
@@ -186,10 +183,10 @@
           var spotLoc = self.spots.indexOf(car.parked());
           if (spotLoc !== -1) carData['parked'] = spotLoc.toString();
         }
-        saveData['cars'].push(carData);
+        saveData.push(carData);
       });
       $.ajax({
-        url: "/save?id=" + self.id,
+        url: "/cars?id=" + self.id,
         method: "put",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
@@ -211,22 +208,28 @@
       for (; numSpots>0; numSpots--) {
         self.spots.push(new TandemSpot());
       }
-      ko.utils.arrayForEach(data['cars'], function(carData) {
-        var car = new Car(carData.driver);
-        if (carData.schedule !== "")
-          car.time(carData.schedule);
-        if (carData.parked) {
-          console.log("park", carData.driver, carData.parked);
-          if (carData.parked === "s") {
-            car.parked("street");
-          } else {
-            var parkedSpot = self.spots()[parseInt(carData.parked)];
-            car.parked(parkedSpot);
-            parkedSpot.parked(car);
+      $.ajax({
+        url: "/cars?id=" + self.id,
+        method: "get",
+        dataType: "json"
+      }).success(function(data) {
+        ko.utils.arrayForEach(data, function(carData) {
+          var car = new Car(carData.driver);
+          if (carData.schedule !== "")
+            car.time(carData.schedule);
+          if (carData.parked) {
+            console.log("park", carData.driver, carData.parked);
+            if (carData.parked === "s") {
+              car.parked("street");
+            } else {
+              var parkedSpot = self.spots()[parseInt(carData.parked)];
+              car.parked(parkedSpot);
+              parkedSpot.parked(car);
+            }
           }
-        }
-        console.log("loaded", car.driver());
-        self.cars.push(car);
+          console.log("loaded", car.driver());
+          self.cars.push(car);
+        });
       });
     });
 

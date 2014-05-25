@@ -7,7 +7,6 @@ import (
 type Command struct {
 	Name  string `json:"name"`
 	Spots int    `json:"spots"`
-	Cars  []Car  `json:"cars"`
 }
 
 type Car struct {
