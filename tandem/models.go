@@ -2,6 +2,8 @@ package tandem
 
 import (
 	"time"
+
+	"appengine/datastore"
 )
 
 type Command struct {
@@ -10,7 +12,9 @@ type Command struct {
 }
 
 type Car struct {
-	Driver   string    `json:"driver"`
-	Schedule time.Time `json:"schedule"`
-	Parked   string    `json:"parked"`
+	CommandKey *datastore.Key
+	DriverKey  *datastore.Key
+	Driver     string    `json:"driver"`
+	Schedule   time.Time `json:"schedule"`
+	Parked     string    `json:"parked"`
 }
