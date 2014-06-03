@@ -7,12 +7,12 @@ import (
 )
 
 type Bot struct {
-	BotKey string
-	BotSecret string
-	ConsumerKey string
+	BotKey         string
+	BotSecret      string
+	ConsumerKey    string
 	ConsumerSecret string
-	LastUpdateId string
-	Name string
+	LastUpdateId   string
+	Name           string
 }
 
 type Command struct {
@@ -21,13 +21,12 @@ type Command struct {
 }
 
 type Car struct {
-	CommandKey *datastore.Key
-	DriverKey  *datastore.Key
-	Driver     string    `json:"driver"`
-	Schedule   time.Time `json:"schedule"`
-	Parked     string    `json:"parked"`
-	Action string
-	Updated time.Time
+	DriverKey *datastore.Key
+	Driver    string    `json:"driver"`
+	Schedule  time.Time `json:"schedule"`
+	Parked    string    `json:"parked"`
+	Action    string
+	Updated   time.Time
 }
 
 type Driver struct {

@@ -65,7 +65,7 @@ func cars(w http.ResponseWriter, r *http.Request) {
 
 	var cars []Car
 	if r.Method == "GET" {
-		q := datastore.NewQuery("Car").Filter("CommandKey =", commandKey)
+		q := datastore.NewQuery("Car").Ancestor(commandKey)
 		if _, err := q.GetAll(c, &cars); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -78,15 +78,14 @@ func cars(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, car := range cars {
 			driverKey := datastore.NewKey(c, "Driver", car.Driver, 0, nil)
-			q := datastore.NewQuery("Car").Filter("CommandKey =", commandKey).
+			q := datastore.NewQuery("Car").Ancestor(commandKey).
 				Filter("DriverKey =", driverKey).
 				KeysOnly()
 			t := q.Run(c)
 			carKey, _ := t.Next(nil)
 			if carKey == nil {
-				carKey = datastore.NewIncompleteKey(c, "Car", nil)
+				carKey = datastore.NewIncompleteKey(c, "Car", commandKey)
 			}
-			car.CommandKey = commandKey
 			car.DriverKey = driverKey
 			if _, err := datastore.Put(c, carKey, &car); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)

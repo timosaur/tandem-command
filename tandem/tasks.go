@@ -66,7 +66,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	query.Set("count", fmt.Sprintf("%v", count))
 	query.Set("since_id", bot.LastUpdateId)
 
-	latest_status := make(map[string]*Car)
+	latest_status := make(map[string]twittergo.Tweet)
 	commands := make(map[int64]struct{})
 
 	for {
@@ -107,33 +107,12 @@ func update(w http.ResponseWriter, r *http.Request) {
 			}
 			max_id = uint64(id_str)
 
-			fmt.Fprintf(w, "tweet %d [%d] %s: %s", i, max_id, tweet.User().ScreenName(), tweet.Text())
+			fmt.Fprintf(w, "tweet %d [%d] %s: %s\n", i, max_id, tweet.User().ScreenName(), tweet.Text())
 			if _, exists := latest_status[tweet.User().ScreenName()]; exists {
 				fmt.Fprintf(w, "\n")
 				continue
 			}
-
-			driverKey := datastore.NewKey(c, "Driver", tweet.User().ScreenName(), 0, nil)
-			driver := new(Driver)
-			if err := datastore.Get(c, driverKey, driver); err != nil {
-				fmt.Fprintf(w, "%v\n", err)
-				continue
-			}
-			car := new(Car)
-			if err := datastore.Get(c, driver.CurrentCar, car); err != nil {
-				fmt.Fprintf(w, "%v\n", err)
-				continue
-			}
-			car.Action = strings.ToLower(strings.Fields(tweet.Text()[len("@"+bot.Name):])[0])
-			car.Updated = tweet.CreatedAt()
-			if _, err := datastore.Put(c, driver.CurrentCar, car); err != nil {
-				fmt.Fprintf(w, "%v\n", err)
-				continue
-			}
-			fmt.Fprintf(w, ", added\n")
-
-			latest_status[tweet.User().ScreenName()] = car
-			commands[car.CommandKey.IntID()] = struct{}{}
+			latest_status[tweet.User().ScreenName()] = tweet
 		}
 		max_id = max_id - 1
 		fmt.Fprintf(w, "Got %v Tweets", batch)
@@ -141,5 +120,31 @@ func update(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, ", %v calls available", resp.RateLimitRemaining())
 		}
 		fmt.Fprintf(w, ".\n")
+	}
+
+	for _, tweet := range latest_status {
+		opts := datastore.TransactionOptions{XG: true}
+		if err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+			driverKey := datastore.NewKey(c, "Driver", tweet.User().ScreenName(), 0, nil)
+			driver := new(Driver)
+			if err := datastore.Get(c, driverKey, driver); err != nil {
+				return err
+			}
+			car := new(Car)
+			if err := datastore.Get(c, driver.CurrentCar, car); err != nil {
+				return err
+			}
+			car.Action = strings.ToLower(strings.Fields(tweet.Text()[len("@"+bot.Name):])[0])
+			car.Updated = tweet.CreatedAt()
+			if _, err := datastore.Put(c, driver.CurrentCar, car); err != nil {
+				return err
+			}
+			fmt.Fprintf(w, "%s (%d): %s\n", car.Driver, driver.CurrentCar.Parent().IntID(), car.Action)
+			commands[driver.CurrentCar.Parent().IntID()] = struct{}{}
+			return err
+		}, &opts); err != nil {
+			fmt.Fprintf(w, "%v\n", err)
+			continue
+		}
 	}
 }
