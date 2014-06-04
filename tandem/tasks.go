@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -15,6 +16,7 @@ import (
 
 func init() {
 	http.HandleFunc("/tasks/update", update)
+	http.HandleFunc("/tasks/updateCommand", updateCommandHandler)
 }
 
 func LoadCredentials(c appengine.Context) (client *twittergo.Client, bot *Bot, err error) {
@@ -48,6 +50,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 		max_id  uint64
 		query   url.Values
 		results *twittergo.Timeline
+		updated time.Time
 	)
 	const (
 		count   int = 200
@@ -98,8 +101,9 @@ func update(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for i, tweet := range *results {
-			if i == 0 {
+			if i == 0 && updated.IsZero() {
 				bot.LastUpdateId = tweet.IdStr()
+				updated = tweet.CreatedAt()
 			}
 			id_str, err := strconv.Atoi(tweet.IdStr())
 			if err != nil {
@@ -146,5 +150,94 @@ func update(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "%v\n", err)
 			continue
 		}
+	}
+
+	for command, _ := range commands {
+		updateCommand(w, c, client, command, updated)
+	}
+}
+
+func updateCommandHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		commandId int64
+		client    *twittergo.Client
+		err       error
+	)
+	if id, err := strconv.Atoi(r.FormValue("id")); err == nil {
+		commandId = int64(id)
+	} else {
+		return
+	}
+	c := appengine.NewContext(r)
+	if client, _, err = LoadCredentials(c); err != nil {
+		fmt.Fprintf(w, "Error loading credentials: %v\n", err)
+		return
+	}
+	updatedTime := time.Now()
+	updateCommand(w, c, client, commandId, updatedTime)
+}
+
+func updateCommand(w http.ResponseWriter, c appengine.Context, client *twittergo.Client, commandId int64, updated time.Time) {
+	var (
+		spotsParked int
+		cars        []Car
+	)
+	fmt.Fprintf(w, "Updating %d\n", commandId)
+
+	commandKey := datastore.NewKey(c, "Command", "", commandId, nil)
+	command := new(Command)
+	if err := datastore.Get(c, commandKey, command); err != nil {
+		fmt.Fprintf(w, "%v\n", err)
+		return
+	}
+
+	if err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+		q := datastore.NewQuery("Car").Ancestor(commandKey).Order("Updated")
+		carKeys, err := q.GetAll(c, &cars)
+		if err != nil {
+			fmt.Fprintf(w, "%v\n", err)
+			return err
+		}
+		fmt.Fprintf(w, "Cars before update: \n%v\n", cars)
+		// Find number of parked spots
+		for i := range cars {
+			if cars[i].Parked != "" && cars[i].Parked != "street" {
+				spotsParked++
+			}
+		}
+		// Update parking using actions
+		for i := range cars {
+			if cars[i].Updated.Before(command.Updated) {
+				continue
+			}
+			if cars[i].Action == "park" {
+				if cars[i].Parked != "" && cars[i].Parked != "street" {
+					continue
+				}
+				cars[i].Parked = fmt.Sprintf("%d", spotsParked)
+				spotsParked++
+			} else if cars[i].Action == "street" {
+				cars[i].Parked = "s"
+			} else if cars[i].Action == "gone" {
+				if cars[i].Parked != "" && cars[i].Parked != "street" {
+					cars[i].Parked = ""
+					spotsParked--
+				}
+			}
+		}
+		if _, err := datastore.PutMulti(c, carKeys, cars); err != nil {
+			return err
+		}
+		fmt.Fprintf(w, "Cars after update: \n%v\n", cars)
+		return err
+	}, nil); err != nil {
+		fmt.Fprintf(w, "%v\n", err)
+		return
+	}
+	// Update command
+	command.Updated = updated
+	if _, err := datastore.Put(c, commandKey, command); err != nil {
+		fmt.Fprintf(w, "%v\n", err)
+		return
 	}
 }

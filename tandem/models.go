@@ -16,8 +16,9 @@ type Bot struct {
 }
 
 type Command struct {
-	Name  string `json:"name"`
-	Spots int    `json:"spots"`
+	Name    string `json:"name"`
+	Spots   int    `json:"spots"`
+	Updated time.Time
 }
 
 type Car struct {
