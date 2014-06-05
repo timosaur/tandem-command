@@ -13,6 +13,7 @@ import (
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/urlfetch"
 )
 
 func init() {
@@ -38,6 +39,7 @@ func LoadCredentials(c appengine.Context) (client *twittergo.Client, bot *Bot, e
 	}
 	user := oauth1a.NewAuthorizedConfig(bot.BotKey, bot.BotSecret)
 	client = twittergo.NewClient(config, user)
+	client.HttpClient = urlfetch.Client(c)
 	return
 }
 
