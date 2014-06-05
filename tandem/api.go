@@ -13,6 +13,7 @@ import (
 func init() {
 	http.HandleFunc("/save", save)
 	http.HandleFunc("/cars", cars)
+	http.HandleFunc("/driver", driver)
 }
 
 func save(w http.ResponseWriter, r *http.Request) {
@@ -103,4 +104,20 @@ func cars(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/json; charset=utf-8")
 	fmt.Fprintf(w, "%s", jsonresp)
+}
+
+func driver(w http.ResponseWriter, r *http.Request) {
+	driverName := r.FormValue("name")
+	currentCarId, err := strconv.Atoi(r.FormValue("car"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c := appengine.NewContext(r)
+	driverKey := datastore.NewKey(c, "Driver", driverName, 0, nil)
+	driver := new(Driver)
+	datastore.Get(c, driverKey, driver)
+	carKey := datastore.NewKey(c, "Car", "", int64(currentCarId), nil)
+	driver.CurrentCar = carKey
+	datastore.Put(c, driverKey, driver)
 }
