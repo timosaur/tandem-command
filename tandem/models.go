@@ -33,3 +33,9 @@ type Car struct {
 type Driver struct {
 	CurrentCar *datastore.Key
 }
+
+type BySchedule []Car
+
+func (a BySchedule) Len() int           { return len(a) }
+func (a BySchedule) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a BySchedule) Less(i, j int) bool { return a[i].Schedule.Before(a[j].Schedule) }

@@ -6,6 +6,7 @@ import (
 	"github.com/kurrik/twittergo"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -240,4 +241,66 @@ func updateCommand(w http.ResponseWriter, c appengine.Context, client *twittergo
 		fmt.Fprintf(w, "%v\n", err)
 		return
 	}
+	// Get suggestions
+	updates := suggestSpots(cars, command.Spots)
+	fmt.Fprintf(w, "Updates: \n%v\n", updates)
+}
+
+func suggestSpots(cars []Car, numSpots int) (results []string) {
+	sort.Sort(BySchedule(cars))
+	suggestions := make(map[string]string)
+	targetCars := make([]Car, 0, len(cars))
+	carParked := false
+	spotsParked := 0
+	for i := range cars {
+		if cars[i].Parked == "" {
+			if !carParked {
+				targetCars = append(targetCars, cars[i])
+			} else {
+				suggestions[cars[i].Driver] = "s"
+			}
+		} else if cars[i].Parked != "street" {
+			carParked = true
+			spotsParked++
+		}
+	}
+	spotsAvailable := numSpots - spotsParked
+	if spotsAvailable <= 1 {
+		var suggestion string
+		if spotsAvailable == 0 {
+			suggestion = "s"
+		} else {
+			if len(targetCars) == 1 {
+				suggestion = "i"
+			} else {
+				suggestion = "s/i"
+			}
+		}
+		for i := range targetCars {
+			suggestions[targetCars[i].Driver] = suggestion
+		}
+	} else {
+		carsBefore := 0
+		carsAfter := len(targetCars) - 1
+		for i := range targetCars {
+			if carsBefore-carsAfter < 0 {
+				suggestions[targetCars[i].Driver] = "s"
+			} else {
+				suggestions[targetCars[i].Driver] = "i"
+			}
+			carsBefore++
+			carsAfter--
+		}
+	}
+	for driver, suggestion := range suggestions {
+		switch {
+		case suggestion == "s":
+			results = append(results, fmt.Sprintf("@%s Please street park", driver))
+		case suggestion == "i":
+			results = append(results, fmt.Sprintf("@%s Please park inside", driver))
+		case suggestion == "s/i":
+			results = append(results, fmt.Sprintf("@%s Please street park if possible", driver))
+		}
+	}
+	return
 }
