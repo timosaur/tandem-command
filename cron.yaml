@@ -1,0 +1,4 @@
+cron:
+- description: Twitter updater
+  url: /tasks/update
+  schedule: every 3 mins
