@@ -244,6 +244,11 @@ func updateCommand(w http.ResponseWriter, c appengine.Context, client *twittergo
 	// Get suggestions
 	updates := suggestSpots(cars, command.Spots)
 	fmt.Fprintf(w, "Updates: \n%v\n", updates)
+	for _, update := range updates {
+		if err := sendTweet(client, update); err != nil {
+			fmt.Fprintf(w, "%v\n", err)
+		}
+	}
 }
 
 func suggestSpots(cars []Car, numSpots int) (results []string) {
@@ -301,6 +306,27 @@ func suggestSpots(cars []Car, numSpots int) (results []string) {
 		case suggestion == "s/i":
 			results = append(results, fmt.Sprintf("@%s Please street park if possible", driver))
 		}
+	}
+	return
+}
+
+func sendTweet(client *twittergo.Client, status string) (err error) {
+	data := url.Values{}
+	data.Set("status", fmt.Sprintf("%s\n%v", status, time.Now()))
+	body := strings.NewReader(data.Encode())
+	req, err := http.NewRequest("POST", "/1.1/statuses/update.json", body)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := client.SendRequest(req)
+	if err != nil {
+		return err
+	}
+	tweet := &twittergo.Tweet{}
+	err = resp.Parse(tweet)
+	if err != nil {
+		return err
 	}
 	return
 }
